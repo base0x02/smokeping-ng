@@ -38,6 +38,8 @@ type EChartsOption = ComposeOption<
 >;
 
 const READINGS_SERIES_ID = "readings";
+const X_ZOOM_IDS = ["x-inside", "x-slider"];
+const Y_ZOOM_ID = "y-slider";
 const OUTAGE_SERIES_ID = "outage";
 
 // "Smoke": several translucent bands at increasing multiples of stddev, all the
@@ -48,6 +50,10 @@ const OUTAGE_SERIES_ID = "outage";
 // a faint haze - a soft cloud instead of one flat wash.
 const SMOKE_LEVELS = [2.2, 1.6, 1.1, 0.7, 0.35];
 const SMOKE_ALPHA = 0.16;
+
+// The RTT axis always reaches at least this high, so quiet endpoints are drawn at a
+// comparable scale; above it ECharts picks a round maximum that fits the data.
+const MIN_Y_MAX_MS = 75;
 
 function cssVar(name: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "0 0 0";
@@ -90,12 +96,21 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
   const ref = useRef<HTMLDivElement>(null);
   const chartRef = useRef<echarts.ECharts | null>(null);
   const stateRef = useRef({ title, points, range, compact, onClick });
+  // User zoom positions by dataZoom id, re-applied on every redraw (data refresh,
+  // theme change) so they don't snap back. X zoom resets when the time range changes.
+  const zoomRef = useRef<Record<string, { start: number; end: number }>>({});
+  const zoomRangeRef = useRef(range);
   stateRef.current = { title, points, range, compact, onClick };
 
   const renderChart = useCallback(() => {
     const chart = chartRef.current;
     if (!chart) return;
     const { title, points, range, compact } = stateRef.current;
+    if (zoomRangeRef.current !== range) {
+      zoomRangeRef.current = range;
+      for (const id of X_ZOOM_IDS) delete zoomRef.current[id];
+    }
+    const zoom = zoomRef.current;
     const palette = buildPalette();
     const slotMs = computeSlotMs(points);
     const dashPxHeight = compact ? 3 : 4;
@@ -105,6 +120,9 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
       : points.length > 1
         ? new Date(points[points.length - 1].ts).getTime() - new Date(points[0].ts).getTime()
         : 0;
+
+    const peakRttMs = Math.max(0, ...points.map((p) => p.avgRttMs ?? 0));
+    const yMax = peakRttMs <= MIN_Y_MAX_MS ? MIN_Y_MAX_MS : undefined;
 
     const seriesData = points.map((p) => ({
       value: [new Date(p.ts).getTime(), p.avgRttMs],
@@ -184,9 +202,9 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
     const option: EChartsOption = {
       backgroundColor: "transparent",
       grid: {
-        left: compact ? 44 : 56,
+        left: compact ? 44 : 84, // full size leaves room for the y-axis slider
         right: compact ? 12 : 24,
-        top: compact ? 28 : 36,
+        top: compact ? 40 : 36,
         bottom: compact ? 28 : 44,
       },
       title: title
@@ -216,6 +234,7 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
         name: compact ? undefined : "RTT (ms)",
         nameTextStyle: { color: palette.axisLabel, fontSize: 10 },
         min: 0,
+        max: yMax,
         axisLabel: { color: palette.axisLabel, fontSize: 10, formatter: (v: number) => `${v}` },
         splitLine: { lineStyle: { color: palette.splitLine, type: "solid" } },
         axisLine: { show: false },
@@ -246,15 +265,38 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
       dataZoom: compact
         ? [{ type: "inside", disabled: true }]
         : [
-            { type: "inside" },
+            { id: "x-inside", type: "inside", xAxisIndex: 0, ...zoom["x-inside"] },
             {
+              id: "x-slider",
               type: "slider",
+              xAxisIndex: 0,
               height: 18,
               bottom: 6,
               borderColor: palette.splitLine,
               fillerColor: palette.accentFiller,
               handleStyle: { color: palette.accent },
               textStyle: { color: palette.axisLabel, fontSize: 10 },
+              ...zoom["x-slider"],
+            },
+            {
+              // Y-axis scale: drag the handles to zoom the RTT range.
+              id: Y_ZOOM_ID,
+              type: "slider",
+              yAxisIndex: 0,
+              orient: "vertical",
+              left: 10,
+              width: 14,
+              top: 36,
+              bottom: 44,
+              filterMode: "none",
+              borderColor: palette.splitLine,
+              fillerColor: palette.accentFiller,
+              handleStyle: { color: palette.accent },
+              moveHandleSize: 0,
+              showDataShadow: false,
+              textStyle: { color: palette.axisLabel, fontSize: 10 },
+              labelFormatter: (v: number) => formatMs(v),
+              ...zoom[Y_ZOOM_ID],
             },
           ],
       series: [outageSeries, readingsSeries],
@@ -272,6 +314,10 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
     window.addEventListener("resize", onResize);
 
     chart.on("click", () => stateRef.current.onClick?.());
+    chart.on("datazoom", () => {
+      const dataZoom = (chart.getOption().dataZoom ?? []) as { id: string; start: number; end: number }[];
+      for (const dz of dataZoom) zoomRef.current[dz.id] = { start: dz.start, end: dz.end };
+    });
 
     renderChart();
     const unsubscribeTheme = subscribeToThemeChange(renderChart);
