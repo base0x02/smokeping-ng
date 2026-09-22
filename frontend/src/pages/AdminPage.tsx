@@ -81,13 +81,18 @@ export function AdminPage() {
   return (
     <div className="flex flex-1 flex-col gap-8 overflow-y-auto p-6">
       <div>
-        <h1 className="text-xl font-semibold text-white">Admin</h1>
+        <h1 className="text-xl font-semibold text-ink-primary">Admin</h1>
         <p className="mt-1 text-sm text-ink-muted">Manage groups and monitored endpoints.</p>
+        {(deleteGroup.error || deleteTarget.error) && (
+          <p className="mt-2 text-sm text-[#d03b3b]">
+            Delete failed: {(deleteGroup.error ?? deleteTarget.error)!.message}
+          </p>
+        )}
       </div>
 
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-white">Groups</h2>
+          <h2 className="text-sm font-semibold text-ink-primary">Groups</h2>
           <button
             onClick={() => setGroupModal({ id: null })}
             className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-soft"
@@ -109,7 +114,7 @@ export function AdminPage() {
                 const parent = flatGroups.find((p) => p.id === g.parentId);
                 return (
                   <tr key={g.id} className="border-t border-line-hairline">
-                    <td className="px-3 py-2 text-white">
+                    <td className="px-3 py-2 text-ink-primary">
                       <span style={{ paddingLeft: g.depth * 14 }}>{g.name}</span>
                     </td>
                     <td className="px-3 py-2 text-ink-muted">{parent?.name ?? "—"}</td>
@@ -148,7 +153,7 @@ export function AdminPage() {
 
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-white">Endpoints</h2>
+          <h2 className="text-sm font-semibold text-ink-primary">Endpoints</h2>
           <button
             onClick={() => setTargetModal({ id: null })}
             className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-soft"
@@ -172,7 +177,7 @@ export function AdminPage() {
             <tbody>
               {targetsQuery.data?.map((t) => (
                 <tr key={t.id} className="border-t border-line-hairline">
-                  <td className="px-3 py-2 text-white">{t.name}</td>
+                  <td className="px-3 py-2 text-ink-primary">{t.name}</td>
                   <td className="px-3 py-2 text-ink-secondary">{t.host}</td>
                   <td className="px-3 py-2 text-ink-muted">
                     {flatGroups.find((g) => g.id === t.groupId)?.name ?? "Ungrouped"}

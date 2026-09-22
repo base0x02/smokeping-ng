@@ -1,27 +1,31 @@
 /** @type {import('tailwindcss').Config} */
+function withOpacity(varName) {
+  return ({ opacityValue }) =>
+    opacityValue === undefined ? `rgb(var(${varName}))` : `rgb(var(${varName}) / ${opacityValue})`;
+}
+
 export default {
-  darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
         surface: {
-          DEFAULT: "#1a1a19",
-          raised: "#212120",
-          page: "#0d0d0d",
+          DEFAULT: withOpacity("--color-surface"),
+          raised: withOpacity("--color-surface-raised"),
+          page: withOpacity("--color-surface-page"),
         },
         ink: {
-          primary: "#ffffff",
-          secondary: "#c3c2b7",
-          muted: "#898781",
+          primary: withOpacity("--color-ink-primary"),
+          secondary: withOpacity("--color-ink-secondary"),
+          muted: withOpacity("--color-ink-muted"),
         },
         line: {
-          hairline: "#2c2c2a",
-          baseline: "#383835",
+          hairline: withOpacity("--color-line-hairline"),
+          baseline: withOpacity("--color-line-baseline"),
         },
         accent: {
-          DEFAULT: "#3987e5",
-          soft: "#1c5cab",
+          DEFAULT: withOpacity("--color-accent"),
+          soft: withOpacity("--color-accent-soft"),
         },
       },
       fontFamily: {

@@ -117,10 +117,9 @@ export async function measurementRoutes(app: FastifyInstance) {
       .from(targets)
       .where(eq(targets.enabled, true));
 
-    if (enabledTargets.length === 0) return { targets: [] };
-
     const to = new Date();
     const from = new Date(to.getTime() - 3 * 60 * 60 * 1000);
+    if (enabledTargets.length === 0) return { from: from.toISOString(), to: to.toISOString(), targets: [] };
     const ids = enabledTargets.map((t) => t.id);
 
     const rows = await db
@@ -144,6 +143,8 @@ export async function measurementRoutes(app: FastifyInstance) {
     }
 
     return {
+      from: from.toISOString(),
+      to: to.toISOString(),
       targets: enabledTargets.map((t) => ({
         id: t.id,
         name: t.name,

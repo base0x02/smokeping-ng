@@ -47,6 +47,9 @@ export interface MeasurementsResponse {
 }
 
 export interface DashboardSample {
+  /** The window the points were queried for (ISO), so graphs can span all of it. */
+  from: string;
+  to: string;
   targets: { id: number; name: string; host: string; points: MeasurementPoint[] }[];
 }
 
@@ -72,9 +75,11 @@ export interface JobsResponse {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  // Only declare a JSON body when there is one: Fastify rejects bodyless requests
+  // (e.g. DELETE) that carry Content-Type: application/json with a 400.
   const res = await fetch(path, {
     ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers },
+    headers: { ...(init?.body !== undefined && { "Content-Type": "application/json" }), ...init?.headers },
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
@@ -106,8 +111,6 @@ export const api = {
     request<MeasurementsResponse>(
       `/api/targets/${targetId}/measurements?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`,
     ),
-  deleteMeasurements: (targetId: number) =>
-    request<void>(`/api/targets/${targetId}/measurements`, { method: "DELETE" }),
 
   getDashboardSample: () => request<DashboardSample>("/api/dashboard/sample"),
 

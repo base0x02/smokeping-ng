@@ -41,7 +41,7 @@ export function GroupPage() {
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-white">{group?.name ?? (treeQuery.isLoading ? "Loading…" : "Group not found")}</h1>
+          <h1 className="text-xl font-semibold text-ink-primary">{group?.name ?? (treeQuery.isLoading ? "Loading…" : "Group not found")}</h1>
           <p className="mt-1 text-sm text-ink-muted">{targets.length} endpoint{targets.length === 1 ? "" : "s"}</p>
         </div>
         <TimeRangePicker range={range} onChange={setRange} />
@@ -57,9 +57,9 @@ export function GroupPage() {
         {targets.map((t, i) => (
           <GraphCard
             key={t.id}
-            title={t.name}
-            subtitle={t.host}
+            title={`${t.name} (${t.host})`}
             points={measurementQueries[i]?.data?.points ?? []}
+            range={range}
             height={260}
             compact
             onClick={() => navigate(`/target/${t.id}`)}

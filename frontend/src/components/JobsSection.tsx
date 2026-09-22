@@ -37,7 +37,7 @@ export function JobsSection() {
   return (
     <section>
       <div className="mb-3">
-        <h2 className="text-sm font-semibold text-white">Recent probe runs</h2>
+        <h2 className="text-sm font-semibold text-ink-primary">Recent probe runs</h2>
         <p className="mt-1 text-xs text-ink-muted">
           The last 5 probe rounds saved for each endpoint, most recent first.
         </p>
@@ -49,7 +49,7 @@ export function JobsSection() {
         {data?.targets.map((t) => (
           <div key={t.targetId} className="overflow-hidden rounded-lg border border-line-hairline">
             <div className="flex items-center justify-between bg-surface-raised px-3 py-2">
-              <span className="text-sm font-medium text-white">{t.targetName}</span>
+              <span className="text-sm font-medium text-ink-primary">{t.targetName}</span>
               <span className="text-xs text-ink-muted">{t.host}</span>
             </div>
             {t.runs.length === 0 ? (
@@ -72,7 +72,7 @@ export function JobsSection() {
                       <td className="px-3 py-2 text-ink-secondary">
                         {run.sent} / {run.received}
                       </td>
-                      <td className="px-3 py-2 text-white">{formatMs(run.avgRttMs)}</td>
+                      <td className="px-3 py-2 text-ink-primary">{formatMs(run.avgRttMs)}</td>
                       <td className="px-3 py-2 text-ink-secondary">{formatMs(run.stddevRttMs)}</td>
                       <td className="px-3 py-2">
                         <div className="flex items-center gap-1.5">

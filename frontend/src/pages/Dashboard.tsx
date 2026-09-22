@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client.js";
@@ -11,13 +12,17 @@ export function Dashboard() {
     queryFn: api.getDashboardSample,
     refetchInterval: 60_000,
   });
+  const range = useMemo(
+    () => (data ? { from: new Date(data.from), to: new Date(data.to) } : undefined),
+    [data],
+  );
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-6">
       <div>
-        <h1 className="text-xl font-semibold text-white">All endpoints</h1>
+        <h1 className="text-xl font-semibold text-ink-primary">All endpoints</h1>
         <p className="mt-1 text-sm text-ink-muted">
-          Showing the last 3 hours for every target. Select a group or endpoint from the sidebar to
+          Showing the last 3 hours for every target. Select a group or endpoint from the ☰ menu to
           focus in, or click a graph to open its full page.
         </p>
       </div>
@@ -41,9 +46,9 @@ export function Dashboard() {
         {data?.targets.map((t) => (
           <GraphCard
             key={t.id}
-            title={t.name}
-            subtitle={t.host}
+            title={`${t.name} (${t.host})`}
             points={t.points}
+            range={range}
             height={240}
             compact
             onClick={() => navigate(`/target/${t.id}`)}

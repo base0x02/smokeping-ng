@@ -49,7 +49,7 @@ export function TargetForm({ initial, flatGroups, onCancel, onSubmit, submitting
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-white"
+            className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-ink-primary"
             placeholder="e.g. Core Router"
           />
         </label>
@@ -59,7 +59,7 @@ export function TargetForm({ initial, flatGroups, onCancel, onSubmit, submitting
             required
             value={host}
             onChange={(e) => setHost(e.target.value)}
-            className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-white"
+            className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-ink-primary"
             placeholder="e.g. 1.1.1.1 or router.lan"
           />
         </label>
@@ -68,7 +68,7 @@ export function TargetForm({ initial, flatGroups, onCancel, onSubmit, submitting
           <select
             value={groupId}
             onChange={(e) => setGroupId(e.target.value === "" ? "" : Number(e.target.value))}
-            className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-white"
+            className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-ink-primary"
           >
             <option value="">Ungrouped</option>
             {flatGroups.map((g) => (
@@ -87,7 +87,7 @@ export function TargetForm({ initial, flatGroups, onCancel, onSubmit, submitting
               max={100}
               value={pingCount}
               onChange={(e) => setPingCount(Number(e.target.value))}
-              className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-white"
+              className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-ink-primary"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
@@ -98,7 +98,7 @@ export function TargetForm({ initial, flatGroups, onCancel, onSubmit, submitting
               step={60}
               value={intervalSeconds}
               onChange={(e) => setIntervalSeconds(Number(e.target.value))}
-              className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-white"
+              className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-ink-primary"
             />
           </label>
         </div>
@@ -110,7 +110,7 @@ export function TargetForm({ initial, flatGroups, onCancel, onSubmit, submitting
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-md border border-line-hairline px-3 py-1.5 text-sm text-ink-secondary hover:bg-white/5"
+            className="rounded-md border border-line-hairline px-3 py-1.5 text-sm text-ink-secondary hover:bg-ink-primary/5"
           >
             Cancel
           </button>

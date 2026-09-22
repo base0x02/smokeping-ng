@@ -1,10 +1,9 @@
 import { spawn } from "node:child_process";
 import { db } from "../db/client.js";
-import { targets, measurements } from "../db/schema.js";
-import { eq } from "drizzle-orm";
+import { measurements } from "../db/schema.js";
 import { computeRoundStats } from "../lib/stats.js";
 
-interface Target {
+export interface ProbeTarget {
   id: number;
   host: string;
   pingCount: number;
@@ -54,18 +53,18 @@ function runFpingBatch(hosts: string[], count: number): Promise<Map<string, (num
   });
 }
 
-export async function runProbeRound(): Promise<void> {
-  const startedAt = new Date();
-  const enabledTargets = await db
-    .select({ id: targets.id, host: targets.host, pingCount: targets.pingCount })
-    .from(targets)
-    .where(eq(targets.enabled, true));
-
-  if (enabledTargets.length === 0) return;
+/**
+ * Probes the given targets and records one measurement per target stamped with
+ * `slot` (the aligned schedule time, not the wall-clock start). The unique
+ * (target_id, ts) index makes this idempotent: a slot is recorded at most once
+ * even if two app instances briefly overlap during a redeploy.
+ */
+export async function runProbeRound(slot: Date, dueTargets: ProbeTarget[]): Promise<void> {
+  if (dueTargets.length === 0) return;
 
   // Batch targets by shared ping count so one fping invocation covers each group.
-  const batches = new Map<number, Target[]>();
-  for (const t of enabledTargets) {
+  const batches = new Map<number, ProbeTarget[]>();
+  for (const t of dueTargets) {
     const list = batches.get(t.pingCount) ?? [];
     list.push(t);
     batches.set(t.pingCount, list);
@@ -88,7 +87,7 @@ export async function runProbeRound(): Promise<void> {
       const stats = computeRoundStats(rtts);
       rows.push({
         targetId: target.id,
-        ts: startedAt,
+        ts: slot,
         sent: stats.sent,
         received: stats.received,
         avgRttMs: stats.avgRttMs,
@@ -100,7 +99,7 @@ export async function runProbeRound(): Promise<void> {
   }
 
   if (rows.length > 0) {
-    await db.insert(measurements).values(rows);
-    console.log(`Probe round complete: ${rows.length} targets measured at ${startedAt.toISOString()}`);
+    await db.insert(measurements).values(rows).onConflictDoNothing();
+    console.log(`Probe round complete: ${rows.length} targets measured for slot ${slot.toISOString()}`);
   }
 }

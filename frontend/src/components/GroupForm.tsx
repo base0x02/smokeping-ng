@@ -35,7 +35,7 @@ export function GroupForm({ initial, flatGroups, excludeId, onCancel, onSubmit, 
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-white"
+            className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-ink-primary"
             placeholder="e.g. Core network"
           />
         </label>
@@ -44,7 +44,7 @@ export function GroupForm({ initial, flatGroups, excludeId, onCancel, onSubmit, 
           <select
             value={parentId}
             onChange={(e) => setParentId(e.target.value === "" ? "" : Number(e.target.value))}
-            className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-white"
+            className="rounded-md border border-line-hairline bg-surface px-3 py-1.5 text-ink-primary"
           >
             <option value="">None (top-level)</option>
             {flatGroups
@@ -60,7 +60,7 @@ export function GroupForm({ initial, flatGroups, excludeId, onCancel, onSubmit, 
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-md border border-line-hairline px-3 py-1.5 text-sm text-ink-secondary hover:bg-white/5"
+            className="rounded-md border border-line-hairline px-3 py-1.5 text-sm text-ink-secondary hover:bg-ink-primary/5"
           >
             Cancel
           </button>

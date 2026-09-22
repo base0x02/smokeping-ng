@@ -2,14 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Theme tokens as CSS custom properties (space-separated RGB channels so
+ * Tailwind's `/opacity` modifiers work, e.g. `bg-surface-raised/50`).
+ * Light is the default on :root; dark applies either from an explicit
+ * data-theme="dark" or, absent an explicit choice, from the OS preference.
+ * See frontend/src/lib/theme.ts for how data-theme gets set.
+ */
 :root {
+  color-scheme: light;
+  --color-surface-page: 249 249 247; /* #f9f9f7 */
+  --color-surface: 252 252 251; /* #fcfcfb */
+  --color-surface-raised: 243 242 239; /* subtle step off surface */
+  --color-ink-primary: 11 11 11; /* #0b0b0b */
+  --color-ink-secondary: 82 81 78; /* #52514e */
+  --color-ink-muted: 137 135 129; /* #898781 */
+  --color-line-hairline: 225 224 217; /* #e1e0d9 */
+  --color-line-baseline: 195 194 183; /* #c3c2b7 */
+  --color-accent: 42 120 214; /* #2a78d6 */
+  --color-accent-soft: 28 92 171; /* #1c5cab */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-surface-page: 13 13 13; /* #0d0d0d */
+    --color-surface: 26 26 25; /* #1a1a19 */
+    --color-surface-raised: 33 33 32; /* #212120 */
+    --color-ink-primary: 255 255 255;
+    --color-ink-secondary: 195 194 183; /* #c3c2b7 */
+    --color-ink-muted: 137 135 129; /* #898781 */
+    --color-line-hairline: 44 44 42; /* #2c2c2a */
+    --color-line-baseline: 56 56 53; /* #383835 */
+    --color-accent: 57 135 229; /* #3987e5 */
+    --color-accent-soft: 28 92 171; /* #1c5cab */
+  }
+}
+
+:root[data-theme="dark"] {
   color-scheme: dark;
+  --color-surface-page: 13 13 13;
+  --color-surface: 26 26 25;
+  --color-surface-raised: 33 33 32;
+  --color-ink-primary: 255 255 255;
+  --color-ink-secondary: 195 194 183;
+  --color-ink-muted: 137 135 129;
+  --color-line-hairline: 44 44 42;
+  --color-line-baseline: 56 56 53;
+  --color-accent: 57 135 229;
+  --color-accent-soft: 28 92 171;
 }
 
 body {
-  background-color: #0d0d0d;
-  color: #ffffff;
+  background-color: rgb(var(--color-surface-page));
+  color: rgb(var(--color-ink-primary));
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
 * {
@@ -24,6 +72,6 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #383835;
+  background: rgb(var(--color-line-baseline));
   border-radius: 5px;
 }

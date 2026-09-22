@@ -8,7 +8,7 @@ import {
   boolean,
   timestamp,
   jsonb,
-  index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -56,7 +56,8 @@ export const measurements = pgTable(
     rawRtts: jsonb("raw_rtts").$type<(number | null)[]>(),
   },
   (table) => ({
-    targetTsIdx: index("measurements_target_ts_idx").on(table.targetId, table.ts),
+    // One measurement per target per scheduled slot (the prober stamps rows with the aligned slot time).
+    targetTsIdx: uniqueIndex("measurements_target_ts_uniq").on(table.targetId, table.ts),
   }),
 );
 

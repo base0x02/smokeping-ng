@@ -25,7 +25,7 @@ export function TimeRangePicker({ range, onChange }: Props) {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-md border border-line-hairline bg-surface-raised px-3 py-1.5 text-sm text-ink-primary hover:bg-white/5"
+        className="flex items-center gap-2 rounded-md border border-line-hairline bg-surface-raised px-3 py-1.5 text-sm text-ink-primary hover:bg-ink-primary/5"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="9" />
@@ -47,11 +47,19 @@ export function TimeRangePicker({ range, onChange }: Props) {
                     onChange({ presetKey: p.key });
                     setOpen(false);
                   }}
-                  className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm text-ink-primary hover:bg-white/5"
+                  className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm text-ink-primary hover:bg-ink-primary/5"
                 >
                   {p.label}
                   {active && (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3987e5" strokeWidth="3">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      className="text-accent"
+                    >
                       <path d="M20 6 9 17l-5-5" />
                     </svg>
                   )}

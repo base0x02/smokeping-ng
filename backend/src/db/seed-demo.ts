@@ -102,7 +102,8 @@ async function main() {
   }
 
   const now = Date.now();
-  const startTime = now - TICK_COUNT * TICK_MS;
+  // Snap to the same wall-clock grid the live scheduler uses.
+  const startTime = Math.floor(now / TICK_MS) * TICK_MS - TICK_COUNT * TICK_MS;
 
   let walk = 28; // starts mid-baseline-range
   const rows: (typeof measurements.$inferInsert)[] = [];
