@@ -8,6 +8,7 @@ import { groupRoutes } from "./api/groups.js";
 import { targetRoutes } from "./api/targets.js";
 import { measurementRoutes } from "./api/measurements.js";
 import { jobRoutes } from "./api/jobs.js";
+import { smokepingImportRoutes } from "./api/smokepingImport.js";
 import { startScheduler } from "./scheduler/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -21,6 +22,7 @@ async function main() {
   await app.register(targetRoutes);
   await app.register(measurementRoutes);
   await app.register(jobRoutes);
+  await app.register(smokepingImportRoutes);
 
   const publicDir = path.join(__dirname, "public");
   await app.register(fastifyStatic, {

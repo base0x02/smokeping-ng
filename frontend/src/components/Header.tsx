@@ -1,5 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle.js";
+import { GraphZoom } from "./GraphZoom.js";
+import { GroupDepthMenu } from "./GroupDepthMenu.js";
 
 interface Props {
   menuOpen: boolean;
@@ -34,6 +36,9 @@ export function Header({ menuOpen, onToggleMenu }: Props) {
       </Link>
 
       <div className="flex items-center justify-end gap-1">
+        <GroupDepthMenu />
+        <GraphZoom />
+        <span className="mx-1 h-5 w-px bg-line-hairline" />
         <ThemeToggle />
         <Link
           to="/admin"

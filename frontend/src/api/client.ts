@@ -74,6 +74,44 @@ export interface JobsResponse {
   targets: JobTarget[];
 }
 
+export interface SmokepingPlanTarget {
+  path: string;
+  name: string;
+  host: string;
+  rrdFile: string | null;
+}
+
+export interface SmokepingPlanGroup {
+  path: string;
+  name: string;
+  groups: SmokepingPlanGroup[];
+  targets: SmokepingPlanTarget[];
+}
+
+export interface SmokepingPlan {
+  groups: SmokepingPlanGroup[];
+  targets: SmokepingPlanTarget[];
+  skipped: { path: string; reason: string }[];
+  unmatchedRrdFiles: string[];
+  defaults: { pingCount: number; intervalSeconds: number };
+  warnings: string[];
+}
+
+export interface SmokepingApplyResult {
+  groupsCreated: number;
+  groupsReused: number;
+  targets: (SmokepingPlanTarget & { targetId: number; created: boolean })[];
+}
+
+export interface SmokepingHistoryResult {
+  targetId: number;
+  inserted: number;
+  from: string | null;
+  to: string | null;
+  pingCount: number;
+  stepSeconds: number;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   // Only declare a JSON body when there is one: Fastify rejects bodyless requests
   // (e.g. DELETE) that carry Content-Type: application/json with a 400.
@@ -115,4 +153,18 @@ export const api = {
   getDashboardSample: () => request<DashboardSample>("/api/dashboard/sample"),
 
   getJobs: () => request<JobsResponse>("/api/jobs"),
+
+  planSmokepingImport: (config: string, rrdFiles: string[]) =>
+    request<SmokepingPlan>("/api/import/smokeping/plan", { method: "POST", body: JSON.stringify({ config, rrdFiles }) }),
+  applySmokepingImport: (config: string, rrdFiles: string[]) =>
+    request<SmokepingApplyResult>("/api/import/smokeping/apply", {
+      method: "POST",
+      body: JSON.stringify({ config, rrdFiles }),
+    }),
+  importSmokepingHistory: (targetId: number, rrd: Blob, adoptSettings: boolean) =>
+    request<SmokepingHistoryResult>(`/api/import/smokeping/history/${targetId}${adoptSettings ? "?adoptSettings=1" : ""}`, {
+      method: "POST",
+      body: rrd,
+      headers: { "Content-Type": "application/octet-stream" },
+    }),
 };

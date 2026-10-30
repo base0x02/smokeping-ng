@@ -9,7 +9,8 @@
  * data-theme="dark" or, absent an explicit choice, from the OS preference.
  * See frontend/src/lib/theme.ts for how data-theme gets set.
  */
-:root {
+:root,
+[data-palette="classic"] {
   color-scheme: light;
   --color-surface-page: 249 249 247; /* #f9f9f7 */
   --color-surface: 252 252 251; /* #fcfcfb */
@@ -21,10 +22,12 @@
   --color-line-baseline: 195 194 183; /* #c3c2b7 */
   --color-accent: 42 120 214; /* #2a78d6 */
   --color-accent-soft: 28 92 171; /* #1c5cab */
+  --color-smoke: 11 11 11;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme="light"]),
+  [data-palette="classic"]:not([data-theme="light"]) {
     color-scheme: dark;
     --color-surface-page: 13 13 13; /* #0d0d0d */
     --color-surface: 26 26 25; /* #1a1a19 */
@@ -36,10 +39,12 @@
     --color-line-baseline: 56 56 53; /* #383835 */
     --color-accent: 57 135 229; /* #3987e5 */
     --color-accent-soft: 28 92 171; /* #1c5cab */
+    --color-smoke: 255 255 255;
   }
 }
 
-:root[data-theme="dark"] {
+:root[data-theme="dark"],
+[data-palette="classic"][data-theme="dark"] {
   color-scheme: dark;
   --color-surface-page: 13 13 13;
   --color-surface: 26 26 25;
@@ -51,6 +56,230 @@
   --color-line-baseline: 56 56 53;
   --color-accent: 57 135 229;
   --color-accent-soft: 28 92 171;
+  --color-smoke: 255 255 255;
+}
+
+/*
+ * Alternate color palettes, chosen on the Admin page and stored as data-palette
+ * on <html> (see src/lib/theme.ts). Each overrides the same tokens as the
+ * default palette above, with the same light/dark selector pattern. Selectors
+ * aren't tied to :root so any element can preview a palette/mode by carrying
+ * its own data-palette and data-theme attributes.
+ */
+
+/* slate */
+[data-palette="slate"] {
+  --color-surface-page: 246 247 250;
+  --color-surface: 251 252 254;
+  --color-surface-raised: 238 241 246;
+  --color-ink-primary: 15 23 42;
+  --color-ink-secondary: 71 85 105;
+  --color-ink-muted: 120 134 156;
+  --color-line-hairline: 222 227 236;
+  --color-line-baseline: 190 199 213;
+  --color-accent: 79 70 229;
+  --color-accent-soft: 67 56 202;
+  --color-smoke: 30 41 59;
+}
+@media (prefers-color-scheme: dark) {
+  [data-palette="slate"]:not([data-theme="light"]) {
+    --color-surface-page: 11 15 25;
+    --color-surface: 17 24 39;
+    --color-surface-raised: 24 32 50;
+    --color-ink-primary: 241 245 249;
+    --color-ink-secondary: 203 213 225;
+    --color-ink-muted: 128 142 165;
+    --color-line-hairline: 36 46 66;
+    --color-line-baseline: 51 65 85;
+    --color-accent: 99 102 241;
+    --color-accent-soft: 67 56 202;
+    --color-smoke: 226 232 240;
+  }
+}
+[data-palette="slate"][data-theme="dark"] {
+  --color-surface-page: 11 15 25;
+  --color-surface: 17 24 39;
+  --color-surface-raised: 24 32 50;
+  --color-ink-primary: 241 245 249;
+  --color-ink-secondary: 203 213 225;
+  --color-ink-muted: 128 142 165;
+  --color-line-hairline: 36 46 66;
+  --color-line-baseline: 51 65 85;
+  --color-accent: 99 102 241;
+  --color-accent-soft: 67 56 202;
+  --color-smoke: 226 232 240;
+}
+
+/* forest */
+[data-palette="forest"] {
+  --color-surface-page: 246 248 244;
+  --color-surface: 251 252 249;
+  --color-surface-raised: 237 242 234;
+  --color-ink-primary: 20 32 22;
+  --color-ink-secondary: 70 88 72;
+  --color-ink-muted: 122 138 122;
+  --color-line-hairline: 221 229 218;
+  --color-line-baseline: 189 203 186;
+  --color-accent: 21 128 61;
+  --color-accent-soft: 22 101 52;
+  --color-smoke: 25 45 30;
+}
+@media (prefers-color-scheme: dark) {
+  [data-palette="forest"]:not([data-theme="light"]) {
+    --color-surface-page: 10 16 12;
+    --color-surface: 17 26 20;
+    --color-surface-raised: 23 34 27;
+    --color-ink-primary: 236 245 238;
+    --color-ink-secondary: 190 210 194;
+    --color-ink-muted: 120 142 125;
+    --color-line-hairline: 34 49 39;
+    --color-line-baseline: 48 66 53;
+    --color-accent: 34 150 82;
+    --color-accent-soft: 21 128 61;
+    --color-smoke: 220 240 225;
+  }
+}
+[data-palette="forest"][data-theme="dark"] {
+  --color-surface-page: 10 16 12;
+  --color-surface: 17 26 20;
+  --color-surface-raised: 23 34 27;
+  --color-ink-primary: 236 245 238;
+  --color-ink-secondary: 190 210 194;
+  --color-ink-muted: 120 142 125;
+  --color-line-hairline: 34 49 39;
+  --color-line-baseline: 48 66 53;
+  --color-accent: 34 150 82;
+  --color-accent-soft: 21 128 61;
+  --color-smoke: 220 240 225;
+}
+
+/* ocean */
+[data-palette="ocean"] {
+  --color-surface-page: 244 249 250;
+  --color-surface: 250 253 253;
+  --color-surface-raised: 233 243 245;
+  --color-ink-primary: 8 32 40;
+  --color-ink-secondary: 58 90 100;
+  --color-ink-muted: 112 140 148;
+  --color-line-hairline: 214 230 234;
+  --color-line-baseline: 180 205 212;
+  --color-accent: 14 116 144;
+  --color-accent-soft: 21 94 117;
+  --color-smoke: 10 50 62;
+}
+@media (prefers-color-scheme: dark) {
+  [data-palette="ocean"]:not([data-theme="light"]) {
+    --color-surface-page: 6 17 22;
+    --color-surface: 11 27 34;
+    --color-surface-raised: 16 36 45;
+    --color-ink-primary: 236 248 250;
+    --color-ink-secondary: 186 214 220;
+    --color-ink-muted: 115 145 153;
+    --color-line-hairline: 26 50 60;
+    --color-line-baseline: 38 68 80;
+    --color-accent: 8 136 166;
+    --color-accent-soft: 14 116 144;
+    --color-smoke: 210 240 245;
+  }
+}
+[data-palette="ocean"][data-theme="dark"] {
+  --color-surface-page: 6 17 22;
+  --color-surface: 11 27 34;
+  --color-surface-raised: 16 36 45;
+  --color-ink-primary: 236 248 250;
+  --color-ink-secondary: 186 214 220;
+  --color-ink-muted: 115 145 153;
+  --color-line-hairline: 26 50 60;
+  --color-line-baseline: 38 68 80;
+  --color-accent: 8 136 166;
+  --color-accent-soft: 14 116 144;
+  --color-smoke: 210 240 245;
+}
+
+/* rose */
+[data-palette="rose"] {
+  --color-surface-page: 251 247 248;
+  --color-surface: 254 251 252;
+  --color-surface-raised: 246 237 240;
+  --color-ink-primary: 40 16 24;
+  --color-ink-secondary: 100 68 78;
+  --color-ink-muted: 150 120 128;
+  --color-line-hairline: 236 222 226;
+  --color-line-baseline: 214 192 199;
+  --color-accent: 190 24 93;
+  --color-accent-soft: 157 23 77;
+  --color-smoke: 60 20 35;
+}
+@media (prefers-color-scheme: dark) {
+  [data-palette="rose"]:not([data-theme="light"]) {
+    --color-surface-page: 20 10 14;
+    --color-surface: 31 17 22;
+    --color-surface-raised: 40 23 30;
+    --color-ink-primary: 253 242 246;
+    --color-ink-secondary: 225 196 206;
+    --color-ink-muted: 160 130 140;
+    --color-line-hairline: 54 34 42;
+    --color-line-baseline: 74 48 58;
+    --color-accent: 214 41 118;
+    --color-accent-soft: 190 24 93;
+    --color-smoke: 250 225 235;
+  }
+}
+[data-palette="rose"][data-theme="dark"] {
+  --color-surface-page: 20 10 14;
+  --color-surface: 31 17 22;
+  --color-surface-raised: 40 23 30;
+  --color-ink-primary: 253 242 246;
+  --color-ink-secondary: 225 196 206;
+  --color-ink-muted: 160 130 140;
+  --color-line-hairline: 54 34 42;
+  --color-line-baseline: 74 48 58;
+  --color-accent: 214 41 118;
+  --color-accent-soft: 190 24 93;
+  --color-smoke: 250 225 235;
+}
+
+/* solar */
+[data-palette="solar"] {
+  --color-surface-page: 251 248 240;
+  --color-surface: 254 252 246;
+  --color-surface-raised: 245 239 225;
+  --color-ink-primary: 40 30 12;
+  --color-ink-secondary: 102 84 52;
+  --color-ink-muted: 150 132 100;
+  --color-line-hairline: 234 225 205;
+  --color-line-baseline: 214 200 170;
+  --color-accent: 194 65 12;
+  --color-accent-soft: 154 52 18;
+  --color-smoke: 70 50 15;
+}
+@media (prefers-color-scheme: dark) {
+  [data-palette="solar"]:not([data-theme="light"]) {
+    --color-surface-page: 18 14 8;
+    --color-surface: 28 23 15;
+    --color-surface-raised: 37 31 21;
+    --color-ink-primary: 250 244 230;
+    --color-ink-secondary: 222 208 180;
+    --color-ink-muted: 156 140 110;
+    --color-line-hairline: 50 42 30;
+    --color-line-baseline: 70 60 42;
+    --color-accent: 221 84 12;
+    --color-accent-soft: 194 65 12;
+    --color-smoke: 250 235 205;
+  }
+}
+[data-palette="solar"][data-theme="dark"] {
+  --color-surface-page: 18 14 8;
+  --color-surface: 28 23 15;
+  --color-surface-raised: 37 31 21;
+  --color-ink-primary: 250 244 230;
+  --color-ink-secondary: 222 208 180;
+  --color-ink-muted: 156 140 110;
+  --color-line-hairline: 50 42 30;
+  --color-line-baseline: 70 60 42;
+  --color-accent: 221 84 12;
+  --color-accent-soft: 194 65 12;
+  --color-smoke: 250 235 205;
 }
 
 body {

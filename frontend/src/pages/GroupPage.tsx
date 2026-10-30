@@ -2,6 +2,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { api, type GroupNode, type TargetSummary } from "../api/client.js";
 import { GraphCard } from "../components/GraphCard.js";
+import { GraphGrid } from "../components/GraphGrid.js";
+import { sectionsFromTree } from "../lib/groupTree.js";
+import { useGroupSections } from "../hooks/useGroupSections.js";
 import { GraphLegend } from "../components/GraphLegend.js";
 import { TimeRangePicker } from "../components/TimeRangePicker.js";
 import { useTimeRange } from "../hooks/useTimeRange.js";
@@ -20,6 +23,7 @@ function collectTargets(node: GroupNode): TargetSummary[] {
 }
 
 export function GroupPage() {
+  const { depth } = useGroupSections();
   const { groupId } = useParams();
   const id = Number(groupId);
   const navigate = useNavigate();
@@ -53,19 +57,25 @@ export function GroupPage() {
         <p className="text-sm text-ink-muted">This group has no endpoints yet.</p>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {targets.map((t, i) => (
-          <GraphCard
-            key={t.id}
-            title={`${t.name} (${t.host})`}
-            points={measurementQueries[i]?.data?.points ?? []}
-            range={range}
-            height={260}
-            compact
-            onClick={() => navigate(`/target/${t.id}`)}
-          />
-        ))}
-      </div>
+      <GraphGrid
+        targetIds={targets.map((t) => t.id)}
+        sections={group ? sectionsFromTree([group], depth) : []}
+        renderGraph={(id, height) => {
+          const i = targets.findIndex((t) => t.id === id);
+          const t = targets[i];
+          return (
+            <GraphCard
+              key={t.id}
+              title={`${t.name} (${t.host})`}
+              points={measurementQueries[i]?.data?.points ?? []}
+              range={range}
+              height={height}
+              compact
+              onClick={() => navigate(`/target/${t.id}`)}
+            />
+          );
+        }}
+      />
     </div>
   );
 }

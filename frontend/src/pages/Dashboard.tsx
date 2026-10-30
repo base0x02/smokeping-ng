@@ -3,6 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client.js";
 import { GraphCard } from "../components/GraphCard.js";
+import { GraphGrid } from "../components/GraphGrid.js";
+import { sectionsFromTree } from "../lib/groupTree.js";
+import { useGroupSections } from "../hooks/useGroupSections.js";
 import { GraphLegend } from "../components/GraphLegend.js";
 
 export function Dashboard() {
@@ -12,6 +15,17 @@ export function Dashboard() {
     queryFn: api.getDashboardSample,
     refetchInterval: 60_000,
   });
+  const { depth } = useGroupSections();
+  const treeQuery = useQuery({ queryKey: ["group-tree"], queryFn: api.getGroupTree });
+  const sections = useMemo(() => {
+    if (!treeQuery.data) return [];
+    const { groups, ungroupedTargets } = treeQuery.data;
+    const list = sectionsFromTree(groups, depth);
+    if (ungroupedTargets.length) {
+      list.push({ key: "ungrouped", title: "Ungrouped", groupId: null, targetIds: ungroupedTargets.map((t) => t.id) });
+    }
+    return list;
+  }, [treeQuery.data, depth]);
   const range = useMemo(
     () => (data ? { from: new Date(data.from), to: new Date(data.to) } : undefined),
     [data],
@@ -42,19 +56,24 @@ export function Dashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {data?.targets.map((t) => (
-          <GraphCard
-            key={t.id}
-            title={`${t.name} (${t.host})`}
-            points={t.points}
-            range={range}
-            height={240}
-            compact
-            onClick={() => navigate(`/target/${t.id}`)}
-          />
-        ))}
-      </div>
+      <GraphGrid
+        targetIds={data?.targets.map((t) => t.id) ?? []}
+        sections={sections}
+        renderGraph={(id, height) => {
+          const t = data!.targets.find((x) => x.id === id)!;
+          return (
+            <GraphCard
+              key={t.id}
+              title={`${t.name} (${t.host})`}
+              points={t.points}
+              range={range}
+              height={height}
+              compact
+              onClick={() => navigate(`/target/${t.id}`)}
+            />
+          );
+        }}
+      />
     </div>
   );
 }

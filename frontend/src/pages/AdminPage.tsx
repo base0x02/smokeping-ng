@@ -6,6 +6,8 @@ import { flattenGroups } from "../lib/groupTree.js";
 import { GroupForm, type GroupFormValues } from "../components/GroupForm.js";
 import { TargetForm, type TargetFormValues } from "../components/TargetForm.js";
 import { JobsSection } from "../components/JobsSection.js";
+import { SmokepingImport } from "../components/SmokepingImport.js";
+import { AppearanceSection } from "../components/AppearanceSection.js";
 
 export function AdminPage() {
   const [params, setParams] = useSearchParams();
@@ -82,13 +84,15 @@ export function AdminPage() {
     <div className="flex flex-1 flex-col gap-8 overflow-y-auto p-6">
       <div>
         <h1 className="text-xl font-semibold text-ink-primary">Admin</h1>
-        <p className="mt-1 text-sm text-ink-muted">Manage groups and monitored endpoints.</p>
+        <p className="mt-1 text-sm text-ink-muted">Appearance, groups and monitored endpoints.</p>
         {(deleteGroup.error || deleteTarget.error) && (
           <p className="mt-2 text-sm text-[#d03b3b]">
             Delete failed: {(deleteGroup.error ?? deleteTarget.error)!.message}
           </p>
         )}
       </div>
+
+      <AppearanceSection />
 
       <section>
         <div className="mb-3 flex items-center justify-between">
@@ -232,6 +236,8 @@ export function AdminPage() {
           </table>
         </div>
       </section>
+
+      <SmokepingImport />
 
       <JobsSection />
 

@@ -5,13 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>smokeping-ng</title>
     <script>
-      // Apply any stored theme choice before first paint to avoid a flash.
-      // Must stay in sync with the storage key/logic in src/lib/theme.ts.
+      // Apply any stored theme and palette choice before first paint to avoid a flash.
+      // Must stay in sync with the storage keys/logic in src/lib/theme.ts.
       (function () {
         try {
           var stored = localStorage.getItem("smokeping-ng-theme");
           if (stored === "light" || stored === "dark") {
             document.documentElement.setAttribute("data-theme", stored);
+          }
+          var palette = localStorage.getItem("smokeping-ng-palette");
+          if (palette && palette !== "classic") {
+            document.documentElement.setAttribute("data-palette", palette);
           }
         } catch (e) {}
       })();

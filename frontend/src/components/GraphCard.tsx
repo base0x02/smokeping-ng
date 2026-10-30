@@ -51,16 +51,37 @@ const OUTAGE_SERIES_ID = "outage";
 const SMOKE_LEVELS = [2.2, 1.6, 1.1, 0.7, 0.35];
 const SMOKE_ALPHA = 0.16;
 
-// The RTT axis always reaches at least this high, so quiet endpoints are drawn at a
-// comparable scale; above it ECharts picks a round maximum that fits the data.
-const MIN_Y_MAX_MS = 75;
+// SmokePing-style autoscale: the axis top is twice the median average RTT, so the
+// typical reading sits mid-graph. It only grows when a reading exceeds that, with
+// headroom so no average dash is ever pushed off the top.
+const Y_CENTER_FACTOR = 2;
+const Y_HEADROOM = 1.1;
+const Y_TICKS = 5;
+
+/** Round step (1, 2, 2.5 or 5 x 10^n) at or above `raw`. */
+function niceStep(raw: number): number {
+  const pow = 10 ** Math.floor(Math.log10(raw));
+  return ([1, 2, 2.5, 5, 10].find((m) => m * pow >= raw) ?? 10) * pow;
+}
+
+/** Round axis max for these points, or undefined to let ECharts decide. */
+function computeYMax(points: MeasurementPoint[]): number | undefined {
+  const avgs = points.map((p) => p.avgRttMs).filter((v): v is number => v !== null && v > 0);
+  if (avgs.length === 0) return undefined;
+  avgs.sort((a, b) => a - b);
+  const mid = Math.floor(avgs.length / 2);
+  const median = avgs.length % 2 ? avgs[mid] : (avgs[mid - 1] + avgs[mid]) / 2;
+  const target = Math.max(median * Y_CENTER_FACTOR, avgs[avgs.length - 1] * Y_HEADROOM);
+  const step = niceStep(target / Y_TICKS);
+  return Math.ceil(target / step) * step;
+}
 
 function cssVar(name: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "0 0 0";
 }
 
 function buildPalette() {
-  const ink = cssVar("--color-ink-primary");
+  const smokeRgb = cssVar("--color-smoke");
   return {
     axisLine: `rgb(${cssVar("--color-line-baseline")})`,
     axisLabel: `rgb(${cssVar("--color-ink-muted")})`,
@@ -73,9 +94,9 @@ function buildPalette() {
     tooltipMuted: `rgb(${cssVar("--color-ink-muted")})`,
     accent: `rgb(${cssVar("--color-accent")})`,
     accentFiller: `rgb(${cssVar("--color-accent")} / 0.15)`,
-    // Grayscale, theme-following: near-black smoke on a light surface, white
-    // smoke on a dark surface - just the ink color at low, layerable alpha.
-    smoke: (alpha: number) => `rgb(${ink} / ${alpha})`,
+    // Theme-following smoke: dark on a light surface, light on a dark surface,
+    // tinted by the palette's smoke token, at low, layerable alpha.
+    smoke: (alpha: number) => `rgb(${smokeRgb} / ${alpha})`,
     // Fixed (mode-invariant) outage red, same status hue used elsewhere for loss.
     outageBg: "rgba(208, 59, 59, 0.22)",
   };
@@ -105,7 +126,7 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
   const renderChart = useCallback(() => {
     const chart = chartRef.current;
     if (!chart) return;
-    const { title, points, range, compact } = stateRef.current;
+    const { title, points, range, compact, onClick } = stateRef.current;
     if (zoomRangeRef.current !== range) {
       zoomRangeRef.current = range;
       for (const id of X_ZOOM_IDS) delete zoomRef.current[id];
@@ -121,8 +142,7 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
         ? new Date(points[points.length - 1].ts).getTime() - new Date(points[0].ts).getTime()
         : 0;
 
-    const peakRttMs = Math.max(0, ...points.map((p) => p.avgRttMs ?? 0));
-    const yMax = peakRttMs <= MIN_Y_MAX_MS ? MIN_Y_MAX_MS : undefined;
+    const yMax = computeYMax(points);
 
     const seriesData = points.map((p) => ({
       value: [new Date(p.ts).getTime(), p.avgRttMs],
@@ -212,6 +232,8 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
             text: title,
             left: 12,
             top: 6,
+            // Titles don't emit click events unless asked to; this makes the title a link.
+            triggerEvent: !!onClick,
             textStyle: { color: palette.titleText, fontSize: compact ? 13 : 15, fontWeight: 600 },
           }
         : undefined,
@@ -235,7 +257,9 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
         nameTextStyle: { color: palette.axisLabel, fontSize: 10 },
         min: 0,
         max: yMax,
-        axisLabel: { color: palette.axisLabel, fontSize: 10, formatter: (v: number) => `${v}` },
+        splitNumber: Y_TICKS,
+        // toPrecision trims float noise like 0.30000000000000004 on sub-ms axes.
+        axisLabel: { color: palette.axisLabel, fontSize: 10, formatter: (v: number) => `${Number(v.toPrecision(6))}` },
         splitLine: { lineStyle: { color: palette.splitLine, type: "solid" } },
         axisLine: { show: false },
       },
@@ -310,8 +334,9 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
     const chart = echarts.init(ref.current, undefined, { renderer: "canvas" });
     chartRef.current = chart;
 
-    const onResize = () => chart.resize();
-    window.addEventListener("resize", onResize);
+    // Follows the card's own size, so window resizes and graph-zoom changes both redraw it.
+    const resizeObserver = new ResizeObserver(() => chart.resize());
+    resizeObserver.observe(ref.current);
 
     chart.on("click", () => stateRef.current.onClick?.());
     chart.on("datazoom", () => {
@@ -323,7 +348,7 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
     const unsubscribeTheme = subscribeToThemeChange(renderChart);
 
     return () => {
-      window.removeEventListener("resize", onResize);
+      resizeObserver.disconnect();
       unsubscribeTheme();
       chart.dispose();
       chartRef.current = null;
@@ -337,7 +362,7 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
 
   return (
     <div
-      className={`rounded-lg border border-line-hairline bg-surface-raised ${onClick ? "cursor-pointer transition hover:border-accent/60" : ""}`}
+      className={`overflow-hidden rounded-2xl border border-line-hairline bg-surface-raised ${onClick ? "cursor-pointer transition hover:border-accent/60" : ""}`}
       style={{ height }}
     >
       <div ref={ref} style={{ width: "100%", height: "100%" }} />
