@@ -17,9 +17,12 @@ interface Props {
   onCancel: () => void;
   onSubmit: (values: TargetFormValues) => void;
   submitting?: boolean;
+  /** Shown as a Delete button when editing an existing endpoint. */
+  onDelete?: () => void;
+  deleting?: boolean;
 }
 
-export function TargetForm({ initial, flatGroups, onCancel, onSubmit, submitting }: Props) {
+export function TargetForm({ initial, flatGroups, onCancel, onSubmit, submitting, onDelete, deleting }: Props) {
   const [name, setName] = useState(initial?.name ?? "");
   const [host, setHost] = useState(initial?.host ?? "");
   const [groupId, setGroupId] = useState<number | "">(initial?.groupId ?? "");
@@ -107,6 +110,20 @@ export function TargetForm({ initial, flatGroups, onCancel, onSubmit, submitting
           Enabled (actively probed)
         </label>
         <div className="mt-2 flex justify-end gap-2">
+          {onDelete && (
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm(`Delete endpoint "${initial?.name ?? name}" and all its history? This can't be undone.`)) {
+                  onDelete();
+                }
+              }}
+              disabled={deleting || submitting}
+              className="mr-auto rounded-md border border-[#d03b3b]/40 px-3 py-1.5 text-sm text-[#d03b3b] hover:bg-[#d03b3b]/10 disabled:opacity-50"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </button>
+          )}
           <button
             type="button"
             onClick={onCancel}

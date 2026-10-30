@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "../hooks/useTheme.js";
+import { useLegendPosition, useLegendVisible } from "../hooks/useLegendPrefs.js";
 import {
   PALETTES,
   getPalette,
@@ -38,26 +39,32 @@ function PalettePreview({ palette, mode }: { palette: PaletteId; mode: ResolvedT
 export function AppearanceSection() {
   const { resolved } = useTheme();
   const [palette, setPaletteState] = useState<PaletteId>(getPalette);
+  const [legendVisible, setLegendVisible] = useLegendVisible();
+  const [legendPosition, setLegendPosition] = useLegendPosition();
 
   useEffect(() => subscribeToThemeChange(() => setPaletteState(getPalette())), []);
 
-  const modeButton = (mode: ResolvedTheme, label: string) => (
+  const segment = (active: boolean, label: string, onClick: () => void, disabled = false) => (
     <button
-      onClick={() => setThemePreference(mode)}
-      className={`rounded-md px-3 py-1 text-sm ${
-        resolved === mode ? "bg-accent text-white" : "text-ink-secondary hover:bg-ink-primary/5"
+      key={label}
+      onClick={onClick}
+      disabled={disabled}
+      aria-pressed={active}
+      className={`rounded-md px-3 py-1 text-sm disabled:opacity-40 ${
+        active ? "bg-accent text-white" : "text-ink-secondary hover:bg-ink-primary/5"
       }`}
     >
       {label}
     </button>
   );
+  const modeButton = (mode: ResolvedTheme, label: string) => segment(resolved === mode, label, () => setThemePreference(mode));
 
   return (
     <section>
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold text-ink-primary">Appearance</h2>
-          <p className="mt-1 text-xs text-ink-muted">Color palette and light/dark mode. Saved in this browser.</p>
+          <p className="mt-1 text-xs text-ink-muted">Color palette, light/dark mode and graph legend. Saved in this browser.</p>
         </div>
         <div className="flex rounded-lg border border-line-hairline p-0.5">
           {modeButton("light", "Light")}
@@ -88,6 +95,21 @@ export function AppearanceSection() {
             </button>
           );
         })}
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+        <span className="text-ink-secondary">Graph legend</span>
+        <div className="flex rounded-lg border border-line-hairline p-0.5">
+          {segment(legendVisible, "Show", () => setLegendVisible(true))}
+          {segment(!legendVisible, "Hide", () => setLegendVisible(false))}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-ink-muted">Position</span>
+          <div className="flex rounded-lg border border-line-hairline p-0.5">
+            {segment(legendPosition === "top", "Top", () => setLegendPosition("top"), !legendVisible)}
+            {segment(legendPosition === "bottom", "Bottom", () => setLegendPosition("bottom"), !legendVisible)}
+          </div>
+        </div>
       </div>
     </section>
   );

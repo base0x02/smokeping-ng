@@ -2,6 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle.js";
 import { GraphZoom } from "./GraphZoom.js";
 import { GroupDepthMenu } from "./GroupDepthMenu.js";
+import { AlertButton } from "./AlertButton.js";
+import { useCurrentPageChrome } from "../hooks/usePageChrome.js";
 
 interface Props {
   menuOpen: boolean;
@@ -14,10 +16,11 @@ const iconButton =
 export function Header({ menuOpen, onToggleMenu }: Props) {
   const location = useLocation();
   const onAdmin = location.pathname.startsWith("/admin");
+  const page = useCurrentPageChrome();
 
   return (
     <header className="grid h-14 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-line-hairline bg-surface px-3">
-      <div className="flex items-center">
+      <div className="flex min-w-0 items-center gap-2">
         <button
           onClick={onToggleMenu}
           aria-label={menuOpen ? "Close endpoint list" : "Open endpoint list"}
@@ -29,6 +32,12 @@ export function Header({ menuOpen, onToggleMenu }: Props) {
             {menuOpen ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M3 6h18M3 12h18M3 18h18" />}
           </svg>
         </button>
+        {page.title && (
+          <div className="min-w-0 leading-tight">
+            <h1 className="truncate text-sm font-semibold text-ink-primary">{page.title}</h1>
+            {page.subtitle && <p className="truncate text-xs text-ink-muted">{page.subtitle}</p>}
+          </div>
+        )}
       </div>
 
       <Link to="/" className="text-lg font-semibold text-ink-primary">
@@ -36,6 +45,7 @@ export function Header({ menuOpen, onToggleMenu }: Props) {
       </Link>
 
       <div className="flex items-center justify-end gap-1">
+        <AlertButton />
         <GroupDepthMenu />
         <GraphZoom />
         <span className="mx-1 h-5 w-px bg-line-hairline" />

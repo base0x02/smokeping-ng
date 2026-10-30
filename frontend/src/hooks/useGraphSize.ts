@@ -6,6 +6,7 @@ import { useSyncExternalStore } from "react";
  * more graphs across and down the screen.
  */
 export const GRAPH_SIZES = [
+  { minWidth: 190, height: 140 },
   { minWidth: 240, height: 170 },
   { minWidth: 300, height: 200 },
   { minWidth: 380, height: 240 },
@@ -14,14 +15,17 @@ export const GRAPH_SIZES = [
   { minWidth: 900, height: 420 },
 ] as const;
 
-const STORAGE_KEY = "smokeping-ng-graph-size";
-const DEFAULT_LEVEL = 2;
+const STORAGE_KEY = "smokeping-ng-graph-size-v2";
+// Before the smallest size was added; its levels are one lower than today's.
+const LEGACY_KEY = "smokeping-ng-graph-size";
+const DEFAULT_LEVEL = 3;
 
 function readStored(): number {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    const v = Number(stored);
-    return stored !== null && Number.isInteger(v) && v >= 0 && v < GRAPH_SIZES.length ? v : DEFAULT_LEVEL;
+    const legacy = localStorage.getItem(LEGACY_KEY);
+    const v = stored !== null ? Number(stored) : legacy !== null ? Number(legacy) + 1 : NaN;
+    return Number.isInteger(v) && v >= 0 && v < GRAPH_SIZES.length ? v : DEFAULT_LEVEL;
   } catch {
     return DEFAULT_LEVEL;
   }

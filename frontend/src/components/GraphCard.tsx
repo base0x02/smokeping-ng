@@ -20,6 +20,8 @@ import type { MeasurementPoint } from "../api/client.js";
 import { lossToColor, lossLabel } from "../lib/lossColor.js";
 import { formatAxisTime, formatMs, formatPct, formatTooltipTime } from "../lib/format.js";
 import { subscribeToThemeChange } from "../lib/theme.js";
+import type { EndpointAlert } from "../api/client.js";
+import { ALERT_COLORS } from "../hooks/useAlerts.js";
 
 interface Props {
   title: string;
@@ -29,6 +31,8 @@ interface Props {
   height?: number;
   onClick?: () => void;
   compact?: boolean;
+  /** Draws the card as a problem: colored border plus the alert's reason. */
+  alert?: EndpointAlert;
 }
 
 echarts.use([CustomChart, GridComponent, TitleComponent, TooltipComponent, DataZoomComponent, CanvasRenderer]);
@@ -113,7 +117,7 @@ function computeSlotMs(points: MeasurementPoint[]): number {
   return diffs[Math.floor(diffs.length / 2)] || 5 * 60 * 1000;
 }
 
-export function GraphCard({ title, points, range, height = 260, onClick, compact = false }: Props) {
+export function GraphCard({ title, points, range, height = 260, onClick, compact = false, alert }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const chartRef = useRef<echarts.ECharts | null>(null);
   const stateRef = useRef({ title, points, range, compact, onClick });
@@ -362,10 +366,22 @@ export function GraphCard({ title, points, range, height = 260, onClick, compact
 
   return (
     <div
-      className={`overflow-hidden rounded-2xl border border-line-hairline bg-surface-raised ${onClick ? "cursor-pointer transition hover:border-accent/60" : ""}`}
-      style={{ height }}
+      className={`relative overflow-hidden rounded-2xl border bg-surface-raised ${alert ? "border-2" : "border-line-hairline"} ${onClick ? "cursor-pointer transition hover:border-accent/60" : ""}`}
+      style={{
+        height,
+        ...(alert && { borderColor: ALERT_COLORS[alert.severity], boxShadow: `0 0 0 3px ${ALERT_COLORS[alert.severity]}33` }),
+      }}
     >
       <div ref={ref} style={{ width: "100%", height: "100%" }} />
+      {alert && (
+        <span
+          title={alert.reason}
+          className="pointer-events-none absolute right-2 top-2 max-w-[60%] truncate rounded-full px-2 py-0.5 text-[11px] font-medium text-white"
+          style={{ background: ALERT_COLORS[alert.severity] }}
+        >
+          {alert.reason}
+        </span>
+      )}
     </div>
   );
 }

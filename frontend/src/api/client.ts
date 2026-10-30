@@ -112,6 +112,21 @@ export interface SmokepingHistoryResult {
   stepSeconds: number;
 }
 
+export interface EndpointAlert {
+  targetId: number;
+  name: string;
+  host: string;
+  kind: "down" | "loss" | "latency";
+  severity: "critical" | "warning";
+  reason: string;
+  since: string;
+}
+
+export interface AlertsResponse {
+  windowMinutes: number;
+  alerts: EndpointAlert[];
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   // Only declare a JSON body when there is one: Fastify rejects bodyless requests
   // (e.g. DELETE) that carry Content-Type: application/json with a 400.
@@ -153,6 +168,8 @@ export const api = {
   getDashboardSample: () => request<DashboardSample>("/api/dashboard/sample"),
 
   getJobs: () => request<JobsResponse>("/api/jobs"),
+
+  getAlerts: () => request<AlertsResponse>("/api/alerts"),
 
   planSmokepingImport: (config: string, rrdFiles: string[]) =>
     request<SmokepingPlan>("/api/import/smokeping/plan", { method: "POST", body: JSON.stringify({ config, rrdFiles }) }),

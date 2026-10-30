@@ -1,6 +1,6 @@
 export function GraphLegend() {
   return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 rounded-md border border-line-hairline bg-surface-raised px-3 py-2 text-xs text-ink-secondary">
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-ink-secondary">
       <div className="flex items-center gap-1.5">
         <span className="inline-block h-[3px] w-3 rounded-sm bg-ink-secondary" />
         Average RTT
@@ -10,7 +10,7 @@ export function GraphLegend() {
           className="inline-block h-3.5 w-5 rounded-sm"
           style={{
             background:
-              "linear-gradient(180deg, rgb(var(--color-ink-primary) / 0.03), rgb(var(--color-ink-primary) / 0.6), rgb(var(--color-ink-primary) / 0.03))",
+              "linear-gradient(180deg, rgb(var(--color-smoke) / 0.03), rgb(var(--color-smoke) / 0.6), rgb(var(--color-smoke) / 0.03))",
           }}
         />
         Jitter (spread of RTT std. dev.)

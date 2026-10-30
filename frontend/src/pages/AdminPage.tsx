@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { usePageChrome } from "../hooks/usePageChrome.js";
 import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type Target } from "../api/client.js";
@@ -12,6 +13,7 @@ import { AppearanceSection } from "../components/AppearanceSection.js";
 export function AdminPage() {
   const [params, setParams] = useSearchParams();
   const queryClient = useQueryClient();
+  usePageChrome({ title: "Admin", subtitle: "Appearance, groups and monitored endpoints." });
 
   const treeQuery = useQuery({ queryKey: ["group-tree"], queryFn: api.getGroupTree });
   const targetsQuery = useQuery({ queryKey: ["targets"], queryFn: api.getTargets });
@@ -50,6 +52,7 @@ export function AdminPage() {
     queryClient.invalidateQueries({ queryKey: ["group-tree"] });
     queryClient.invalidateQueries({ queryKey: ["targets"] });
     queryClient.invalidateQueries({ queryKey: ["dashboard-sample"] });
+    queryClient.invalidateQueries({ queryKey: ["alerts"] });
   };
 
   const saveGroup = useMutation({
@@ -82,15 +85,9 @@ export function AdminPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-8 overflow-y-auto p-6">
-      <div>
-        <h1 className="text-xl font-semibold text-ink-primary">Admin</h1>
-        <p className="mt-1 text-sm text-ink-muted">Appearance, groups and monitored endpoints.</p>
-        {(deleteGroup.error || deleteTarget.error) && (
-          <p className="mt-2 text-sm text-[#d03b3b]">
-            Delete failed: {(deleteGroup.error ?? deleteTarget.error)!.message}
-          </p>
-        )}
-      </div>
+      {(deleteGroup.error || deleteTarget.error) && (
+        <p className="text-sm text-[#d03b3b]">Delete failed: {(deleteGroup.error ?? deleteTarget.error)!.message}</p>
+      )}
 
       <AppearanceSection />
 
@@ -258,6 +255,12 @@ export function AdminPage() {
           onCancel={() => setTargetModal(null)}
           onSubmit={(v) => saveTarget.mutate(v)}
           submitting={saveTarget.isPending}
+          onDelete={
+            targetModal.id
+              ? () => deleteTarget.mutate(targetModal.id!, { onSuccess: () => setTargetModal(null) })
+              : undefined
+          }
+          deleting={deleteTarget.isPending}
         />
       )}
     </div>

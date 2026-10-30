@@ -1,11 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { usePageChrome } from "../hooks/usePageChrome.js";
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { api, type GroupNode, type TargetSummary } from "../api/client.js";
 import { GraphCard } from "../components/GraphCard.js";
 import { GraphGrid } from "../components/GraphGrid.js";
 import { sectionsFromTree } from "../lib/groupTree.js";
 import { useGroupSections } from "../hooks/useGroupSections.js";
-import { GraphLegend } from "../components/GraphLegend.js";
+import { useAlerts } from "../hooks/useAlerts.js";
 import { TimeRangePicker } from "../components/TimeRangePicker.js";
 import { useTimeRange } from "../hooks/useTimeRange.js";
 
@@ -24,6 +25,7 @@ function collectTargets(node: GroupNode): TargetSummary[] {
 
 export function GroupPage() {
   const { depth } = useGroupSections();
+  const { byTarget: alertsByTarget } = useAlerts();
   const { groupId } = useParams();
   const id = Number(groupId);
   const navigate = useNavigate();
@@ -32,6 +34,11 @@ export function GroupPage() {
   const treeQuery = useQuery({ queryKey: ["group-tree"], queryFn: api.getGroupTree });
   const group = treeQuery.data ? findGroup(treeQuery.data.groups, id) : null;
   const targets = group ? collectTargets(group) : [];
+  usePageChrome({
+    title: group?.name ?? (treeQuery.isLoading ? "Loading…" : "Group not found"),
+    subtitle: `${targets.length} endpoint${targets.length === 1 ? "" : "s"}`,
+    hasGraphs: true,
+  });
 
   const measurementQueries = useQueries({
     queries: targets.map((t) => ({
@@ -43,15 +50,9 @@ export function GroupPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-ink-primary">{group?.name ?? (treeQuery.isLoading ? "Loading…" : "Group not found")}</h1>
-          <p className="mt-1 text-sm text-ink-muted">{targets.length} endpoint{targets.length === 1 ? "" : "s"}</p>
-        </div>
+      <div className="flex justify-end">
         <TimeRangePicker range={range} onChange={setRange} />
       </div>
-
-      <GraphLegend />
 
       {targets.length === 0 && group && (
         <p className="text-sm text-ink-muted">This group has no endpoints yet.</p>
@@ -71,6 +72,7 @@ export function GroupPage() {
               range={range}
               height={height}
               compact
+              alert={alertsByTarget.get(t.id)}
               onClick={() => navigate(`/target/${t.id}`)}
             />
           );

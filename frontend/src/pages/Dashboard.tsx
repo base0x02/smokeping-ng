@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { usePageChrome } from "../hooks/usePageChrome.js";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client.js";
@@ -6,16 +7,22 @@ import { GraphCard } from "../components/GraphCard.js";
 import { GraphGrid } from "../components/GraphGrid.js";
 import { sectionsFromTree } from "../lib/groupTree.js";
 import { useGroupSections } from "../hooks/useGroupSections.js";
-import { GraphLegend } from "../components/GraphLegend.js";
+import { useAlerts } from "../hooks/useAlerts.js";
 
 export function Dashboard() {
   const navigate = useNavigate();
+  usePageChrome({
+    title: "All endpoints",
+    subtitle: "Last 3 hours for every endpoint. Click a graph to open its full page.",
+    hasGraphs: true,
+  });
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-sample"],
     queryFn: api.getDashboardSample,
     refetchInterval: 60_000,
   });
   const { depth } = useGroupSections();
+  const { byTarget: alertsByTarget } = useAlerts();
   const treeQuery = useQuery({ queryKey: ["group-tree"], queryFn: api.getGroupTree });
   const sections = useMemo(() => {
     if (!treeQuery.data) return [];
@@ -33,15 +40,6 @@ export function Dashboard() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-6">
-      <div>
-        <h1 className="text-xl font-semibold text-ink-primary">All endpoints</h1>
-        <p className="mt-1 text-sm text-ink-muted">
-          Showing the last 3 hours for every target. Select a group or endpoint from the ☰ menu to
-          focus in, or click a graph to open its full page.
-        </p>
-      </div>
-      <GraphLegend />
-
       {isLoading && <p className="text-sm text-ink-muted">Loading…</p>}
 
       {data && data.targets.length === 0 && (
@@ -69,6 +67,7 @@ export function Dashboard() {
               range={range}
               height={height}
               compact
+              alert={alertsByTarget.get(t.id)}
               onClick={() => navigate(`/target/${t.id}`)}
             />
           );

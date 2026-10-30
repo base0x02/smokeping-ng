@@ -110,6 +110,8 @@ interface Props {
   /** Group sections, used when the header's group toggle is on. */
   sections: TargetSection[];
   renderGraph: (targetId: number, height: number) => ReactNode;
+  /** Always one flat grid, ignoring the header's group setting. */
+  flat?: boolean;
 }
 
 /**
@@ -120,8 +122,8 @@ interface Props {
  * packed into one shared grid (see packBoxes), so small groups fill the gaps
  * beside big ones instead of each group taking a full-width row.
  */
-export function GraphGrid({ targetIds, sections, renderGraph }: Props) {
-  const { grouped } = useGroupSections();
+export function GraphGrid({ targetIds, sections, renderGraph, flat = false }: Props) {
+  const grouped = useGroupSections().grouped && !flat;
   const { size } = useGraphSize();
   const { ref, cols } = useColumnCount(size.minWidth, grouped);
 

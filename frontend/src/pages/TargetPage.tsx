@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { usePageChrome } from "../hooks/usePageChrome.js";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../api/client.js";
 import { GraphCard } from "../components/GraphCard.js";
-import { GraphLegend } from "../components/GraphLegend.js";
 import { TimeRangePicker } from "../components/TimeRangePicker.js";
 import { useTimeRange } from "../hooks/useTimeRange.js";
 
@@ -26,14 +26,11 @@ export function TargetPage() {
   });
 
   const target = targetQuery.data;
+  usePageChrome({ title: target?.name ?? "Loading…", subtitle: target?.host, hasGraphs: true });
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-ink-primary">{target?.name ?? "Loading…"}</h1>
-          <p className="mt-1 text-sm text-ink-muted">{target?.host}</p>
-        </div>
+      <div className="flex justify-end">
         <div className="flex items-center gap-2">
           <TimeRangePicker range={range} onChange={setRange} />
           <button
@@ -44,8 +41,6 @@ export function TargetPage() {
           </button>
         </div>
       </div>
-
-      <GraphLegend />
 
       {measurementsQuery.data && (
         <GraphCard
