@@ -6,20 +6,7 @@ A modern, self-hosted replacement for [SmokePing](https://oss.oetiker.ch/smokepi
 
 ![Endpoint page showing 30 days of history, including an outage (light mode)](docs/screenshots/endpoint-30-days.png)
 
-## No RRD files: how data is stored
 
-Classic SmokePing writes to RRD (round-robin database) files: one fixed-size file per target, created up front. As data ages, RRDtool averages it into coarser and coarser archives (5-minute samples become hourly, then daily) and eventually discards it. A 5-minute spike from last month may simply no longer exist.
-
-smokeping-ng doesn't use RRD at all. Everything lives in **PostgreSQL**:
-
-- **One row per probe run.** Each row stores the endpoint, the slot timestamp, pings sent and received, average RTT, jitter (standard deviation), loss %, and **every individual ping's RTT** (as a JSON array, with lost pings as `null`).
-- **Nothing is averaged away.** Old data stays at full 5-minute resolution, so you can zoom into any period, however old, and see each probe.
-- **Downsampling happens when the graph is drawn.** Long ranges are bucketed at query time (with Postgres `date_bin`) to about 1,500 points per graph, so a 90-day view stays fast. Narrow the range and you get the raw probes again.
-- **Groups and endpoints are ordinary database tables** too, edited from the web UI instead of a config file, with no restart needed.
-- **Plain SQL access.** You can query, back up (`pg_dump`) or export the data with standard Postgres tools.
-- **Storage grows with history.** Unlike an RRD, the database isn't a fixed size. Each probe row is small, but expect it to grow steadily over time.
-
-RRD files are only read once, by the [SmokePing importer](#smokeping-migration), which converts their history into these rows.
 
 ## Features
 
@@ -48,6 +35,16 @@ RRD files are only read once, by the [SmokePing importer](#smokeping-migration),
   - **slow**: median RTT much higher than usual (at least 1.5× and +10 ms)
 - A warning icon with a count appears in the header. It opens a **Problems** page showing just the affected graphs, with the reason and how long each has been going on.
 - Problem graphs are also highlighted on the dashboard and group pages.
+
+## No RRD files: how data is stored
+
+Classic SmokePing writes to RRD (round-robin database) files: one fixed-size file per target, created up front. As data ages, RRDtool averages it into coarser and coarser archives (5-minute samples become hourly, then daily) and eventually discards it. A 5-minute spike from last month may simply no longer exist. smokeping-ng doesn't use RRD at all. Everything lives in **PostgreSQL**:
+
+- **One row per probe run.** Each row stores the endpoint, the slot timestamp, pings sent and received, average RTT, jitter (standard deviation), loss %, and **every individual ping's RTT** (as a JSON array, with lost pings as `null`).
+- **Nothing is averaged away.** Old data stays at full 5-minute resolution, so you can zoom into any period, however old, and see each probe.
+- **Downsampling happens when the graph is drawn.** Long ranges are bucketed at query time (with Postgres `date_bin`) to about 1,500 points per graph, so a 90-day view stays fast. Narrow the range and you get the raw probes again.
+
+RRD files are only read once, by the [SmokePing importer](#smokeping-migration), which converts their history into these rows.
 
 ### SmokePing migration
 - **Import a SmokePing `Targets` config.** Groups and endpoints are recreated from the `+`/`++` hierarchy, using `menu` names, `host`, and `pings`/`step` from the Database section. Non-FPing probes and multi-host graphs are skipped and listed in the preview.
