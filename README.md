@@ -6,7 +6,7 @@ A modern, self-hosted replacement for [SmokePing](https://oss.oetiker.ch/smokepi
 
 ![Endpoint page showing 30 days of history, including an outage (light mode)](docs/screenshots/endpoint-30-days.png)
 
-
+![Alerts when there are issues](docs/screenshots/alert.png)
 
 ## Features
 
