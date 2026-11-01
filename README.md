@@ -2,6 +2,25 @@
 
 A modern, self-hosted replacement for [SmokePing](https://oss.oetiker.ch/smokeping/). It pings your endpoints on a fixed schedule and draws SmokePing-style "smoke" graphs of latency, jitter and packet loss, with a React UI, a Postgres backend and a one-command Docker setup.
 
+![Dashboard with a group box of endpoint graphs (dark mode)](docs/screenshots/dashboard-dark.png)
+
+![Endpoint page showing 30 days of history, including an outage (light mode)](docs/screenshots/endpoint-30-days.png)
+
+## No RRD files: how data is stored
+
+Classic SmokePing writes to RRD (round-robin database) files: one fixed-size file per target, created up front. As data ages, RRDtool averages it into coarser and coarser archives (5-minute samples become hourly, then daily) and eventually discards it. A 5-minute spike from last month may simply no longer exist.
+
+smokeping-ng doesn't use RRD at all. Everything lives in **PostgreSQL**:
+
+- **One row per probe run.** Each row stores the endpoint, the slot timestamp, pings sent and received, average RTT, jitter (standard deviation), loss %, and **every individual ping's RTT** (as a JSON array, with lost pings as `null`).
+- **Nothing is averaged away.** Old data stays at full 5-minute resolution, so you can zoom into any period, however old, and see each probe.
+- **Downsampling happens when the graph is drawn.** Long ranges are bucketed at query time (with Postgres `date_bin`) to about 1,500 points per graph, so a 90-day view stays fast. Narrow the range and you get the raw probes again.
+- **Groups and endpoints are ordinary database tables** too, edited from the web UI instead of a config file, with no restart needed.
+- **Plain SQL access.** You can query, back up (`pg_dump`) or export the data with standard Postgres tools.
+- **Storage grows with history.** Unlike an RRD, the database isn't a fixed size. Each probe row is small, but expect it to grow steadily over time.
+
+RRD files are only read once, by the [SmokePing importer](#smokeping-migration), which converts their history into these rows.
+
 ## Features
 
 ### Monitoring
@@ -82,7 +101,3 @@ cd frontend && npm install && npm run dev
 `npm run db:seed-demo` in `backend/` adds a demo endpoint with generated history.
 
 **Stack:** Node 20, Fastify, Drizzle ORM, PostgreSQL 16 · React 18, Vite, TanStack Query, ECharts, Tailwind CSS.
-
-## Tips
-
-- **Running behind a VPN?** Container pings follow the host's routing table, so per-app VPN split tunneling usually won't exclude ICMP. For accurate results, run smokeping-ng on a machine that isn't on the VPN.
